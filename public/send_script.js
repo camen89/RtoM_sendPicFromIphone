@@ -1,7 +1,5 @@
 const ws = new WebSocket(`wss://${location.host}`);
 
-let isCameraReady = false;
-
 ws.onopen = () => {
   console.log("WebSocket connected on iPhone side");
 };
@@ -11,22 +9,20 @@ ws.onerror = (err) => {
 };
 
 ws.onclose = (event) => {
-  console.log("WebSocket closed:", event);
+  console.log(`WebSocket closed: ${event.code} - ${event.reason}`);
 };
 
 ws.onmessage = (event) => {
   if (typeof event.data === "string") {
-    console.log("iPhone received message:", event.data);
-    if (event.data === "takePhoto") {
-      console.log("撮影指令を受信しました。カメラ準備確認後に撮影します。");
-      if (isCameraReady) {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "takePhoto") {
+        console.log("撮影指令を受信しました。カメラ準備確認後に撮影します。");
         send();
-      } else {
-        console.warn("カメラ映像がまだ準備できていません。");
       }
+    } catch (e) {
+      console.log("iPhone received unknown or invalid message, ignored.");
     }
-  } else {
-    console.log("iPhone received binary or unknown data, ignored.");
   }
 };
 
@@ -37,7 +33,6 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.log("カメラ映像取得成功");
 
     video.onloadedmetadata = () => {
-      isCameraReady = true;
       console.log("カメラ映像メタデータ取得、準備完了");
     };
   })
@@ -48,8 +43,8 @@ navigator.mediaDevices.getUserMedia({ video: true })
 
 function send() {
   const video = document.getElementById("camera");
-  if (!isCameraReady || video.videoWidth === 0 || video.videoHeight === 0) {
-    console.warn("カメラ映像がまだ準備できていません。");
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    console.warn("カメラ映像がまだ準備できていません。少し待ってから再度撮影してください。");
     return;
   }
 
@@ -62,7 +57,7 @@ function send() {
 
   const dataUrl = canvas.toDataURL("image/png");
   if (ws.readyState === WebSocket.OPEN) {
-    ws.send(dataUrl);
+    ws.send(JSON.stringify({ type: "imageData", data: dataUrl }));
     console.log("画像を送信しました");
   } else {
     console.error("WebSocketが開いていません。送信できません。");
