@@ -18,42 +18,56 @@ function resizeCanvas() {
 }
 
 function takePhoto() {
-    const img = document.getElementById('receivedImage');
-    const dateP = document.getElementById('date');
-    const canvas = document.getElementById('resultCanvas');
-    const ctx = canvas.getContext('2d');
+  const img = document.getElementById('receivedImage');
+  const dateP = document.getElementById('date');
+  const canvas = document.getElementById('resultCanvas');
+  const ctx = canvas.getContext('2d');
 
-    if (!img.src.startsWith('data:image/')) {
-        alert('まだ画像が受信されていません。');
-        return;
-    }
+  if (!img.src || !img.src.startsWith('data:image/')) {
+    alert('まだ画像が受信されていません。');
+    return;
+  }
 
-    const aspectRatio = img.naturalWidth / img.naturalHeight;
-    const widthInput = document.getElementById('canvasWidthInput');
-    const targetWidth = parseInt(widthInput.value, 10);
-    const targetHeight = Math.round(targetWidth / aspectRatio);
+  if (!img.complete || img.naturalWidth === 0) {
+    alert('画像の読み込みが完了していません。少し待ってから再度押してください。');
+    return;
+  }
 
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
+  const aspectRatio = img.naturalWidth / img.naturalHeight;
+  const widthInput = document.getElementById('canvasWidthInput');
+  const targetWidth = parseInt(widthInput.value, 10);
+  const targetHeight = Math.round(targetWidth / aspectRatio);
 
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
 
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const gray = toGrayscale(imgData.data, canvas.width, canvas.height);
-    const result = errorDiffusion1CH(gray, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    const outputData = ctx.createImageData(canvas.width, canvas.height);
-    for (let i = 0; i < result.length; i++) {
-        outputData.data[i * 4 + 0] = result[i];
-        outputData.data[i * 4 + 1] = result[i];
-        outputData.data[i * 4 + 2] = result[i];
-        outputData.data[i * 4 + 3] = 255;
-    }
-    ctx.putImageData(outputData, 0, 0);
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const gray = toGrayscale(imgData.data, canvas.width, canvas.height);
+  const result = errorDiffusion1CH(gray, canvas.width, canvas.height);
 
-    const now = new Date();
-    dateP.textContent = `Date : ${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+  const outputData = ctx.createImageData(canvas.width, canvas.height);
+  for (let i = 0; i < result.length; i++) {
+    outputData.data[i * 4 + 0] = result[i];
+    outputData.data[i * 4 + 1] = result[i];
+    outputData.data[i * 4 + 2] = result[i];
+    outputData.data[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(outputData, 0, 0);
+
+  const now = new Date();
+  dateP.textContent = `Date : ${now.getFullYear()}/${(now.getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now
+    .getHours()
+    .toString()
+    .padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now
+    .getSeconds()
+    .toString()
+    .padStart(2, '0')}`;
 }
+
 
 function toGrayscale(array, width, height) {
     const output = new Uint8Array(width * height);
