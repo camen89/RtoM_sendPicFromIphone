@@ -1,34 +1,32 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Camera Sender</title>
+  <meta charset="UTF-8" />
+  <title>Camera Sender</title>
 </head>
-
 <body>
-    <video id="camera" autoplay playsinline></video><br>
-    <button onclick="send()">Capture & Send</button>
-    <canvas id="canvas" style="display:none;"></canvas>
+  <h1>Send Image</h1>
+  <video id="camera" autoplay playsinline></video><br />
+  <button onclick="send()">Capture & Send</button>
+  <canvas id="canvas" style="display:none;"></canvas>
 
-    <script>
-        const ws = new WebSocket(`ws://${location.host}`);
-        navigator.mediaDevices.getUserMedia({
-            video: true
-        }).then(stream => {
-            document.getElementById('camera').srcObject = stream;
-        });
+  <script>
+    const ws = new WebSocket(`wss://${location.host}`);
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      document.getElementById('camera').srcObject = stream;
+    });
 
-        function send() {
-            const video = document.getElementById('camera');
-            const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            ws.send(canvas.toDataURL('image/png'));
-        }
-    </script>
+    function send() {
+      const video = document.getElementById('camera');
+      const canvas = document.getElementById('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL('image/png');
+      ws.send(dataUrl);
+    }
+  </script>
 </body>
-
 </html>
