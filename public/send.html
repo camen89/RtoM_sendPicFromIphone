@@ -2,31 +2,15 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Camera Sender</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Camera Sender (iPhone)</title>
 </head>
 <body>
-  <h1>Send Image</h1>
-  <video id="camera" autoplay playsinline></video><br />
-  <button onclick="send()">Capture & Send</button>
+  <h1>Camera Sender (iPhone)</h1>
+  <video id="camera" autoplay playsinline></video>
+  <button onclick="send()">手動撮影＆送信</button>
   <canvas id="canvas" style="display:none;"></canvas>
 
-  <script>
-    const ws = new WebSocket(`wss://${location.host}`);
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-      document.getElementById('camera').srcObject = stream;
-    });
-
-    function send() {
-      const video = document.getElementById('camera');
-      const canvas = document.getElementById('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const dataUrl = canvas.toDataURL('image/png');
-      ws.send(dataUrl);
-    }
-  </script>
+  <script src="send_script.js"></script>
 </body>
 </html>
