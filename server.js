@@ -8,11 +8,22 @@ app.use(express.static('public'));
 
 wss.on('connection', (ws) => {
   ws.on('message', (data) => {
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    });
+    // 文字列のみ中継、画像データ（data:image）含む文字列も除外
+    if (typeof data === 'string' && !data.startsWith('data:image/')) {
+      wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          client.send(data);
+        }
+      });
+    }
+    // 画像データは全員に送信（もしくはPCだけに送る）
+    else if (typeof data === 'string' && data.startsWith('data:image/')) {
+      wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          client.send(data);
+        }
+      });
+    }
   });
 });
 
