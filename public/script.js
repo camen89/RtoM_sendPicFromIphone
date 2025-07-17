@@ -54,3 +54,35 @@ function takePhoto() {
     const now = new Date();
     dateP.textContent = `Date : ${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
 }
+
+function toGrayscale(array, width, height) {
+    const output = new Uint8Array(width * height);
+    for (let i = 0; i < width * height; i++) {
+        const r = array[i * 4];
+        const g = array[i * 4 + 1];
+        const b = array[i * 4 + 2];
+        output[i] = (r + g + b) / 3 | 0;
+    }
+    return output;
+}
+
+function errorDiffusion1CH(u8array, width, height) {
+    const buffer = new Int16Array(width * height).map((_, i) => u8array[i]);
+    const output = new Uint8Array(width * height);
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = y * width + x;
+            const oldPixel = buffer[idx];
+            const newPixel = oldPixel >= 128 ? 255 : 0;
+            const error = oldPixel - newPixel;
+            output[idx] = newPixel;
+
+            if (x + 1 < width) buffer[idx + 1] += (5 * error) / 16 | 0;
+            if (x - 1 >= 0 && y + 1 < height) buffer[idx + width - 1] += (3 * error) / 16 | 0;
+            if (y + 1 < height) buffer[idx + width] += (5 * error) / 16 | 0;
+            if (x + 1 < width && y + 1 < height) buffer[idx + width + 1] += (3 * error) / 16 | 0;
+        }
+    }
+    return output;
+}
