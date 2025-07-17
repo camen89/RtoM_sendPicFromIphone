@@ -10,8 +10,13 @@ wss.on('connection', (ws) => {
   console.log('New client connected');
 
   ws.on('message', (data) => {
-    console.log('Received message:', typeof data, data.toString());
+    if (typeof data === 'string') {
+      console.log('Received text message:', data);
+    } else if (data instanceof Buffer) {
+      console.log('Received binary message (not logged)');
+    }
 
+    // 他のすべてのクライアントに転送
     wss.clients.forEach(client => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(data);
