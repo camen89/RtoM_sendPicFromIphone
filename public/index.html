@@ -1,60 +1,36 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Record & Print</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="m02s_print.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Record & Print (PC)</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="m02s_print.js"></script>
 </head>
-
 <body>
-    <h1>Record to Memory Box</h1>
+  <h1>Record to Memory Box (PC)</h1>
 
-    <img id="receivedImage" style="max-width:80%; display:none;" />
+  <button id="btnRemoteTake">iPhoneで撮影開始</button>
 
-    <div style="text-align:center; margin: 10px;">
-        <label>Canvas Width (px): <input type="number" id="canvasWidthInput" value="288" min="50" max="576"></label>
-        <button onclick="resizeCanvas()">Resize Canvas</button>
-    </div>
+  <img id="receivedImage" style="max-width:80%; display:none;" />
 
-    <canvas id="resultCanvas"></canvas>
+  <div style="text-align:center; margin: 10px;">
+    <label>Canvas Width (px):
+      <input type="number" id="canvasWidthInput" value="288" min="50" max="576" />
+    </label>
+    <button onclick="resizeCanvas()">Resize Canvas</button>
+  </div>
 
-    <div>
-        <button onclick="takePhoto()">Take Photo (from Received Image)</button>
-        <button onclick="printCanvas()">Print</button>
-    </div>
+  <canvas id="resultCanvas"></canvas>
 
-    <p class="text" id="date">Date :</p>
-    <p class="text" id="place">Place : Tama Art University Information Design Building 1F</p>
+  <div>
+    <button onclick="takePhoto()">Take Photo (from Received Image)</button>
+    <button onclick="printCanvas()">Print</button>
+  </div>
 
-    <script src="script.js"></script>
+  <p class="text" id="date">Date :</p>
+  <p class="text" id="place">Place : Tama Art University Information Design Building 1F</p>
 
-    <script>
-        const ws = new WebSocket(`wss://${location.host}`);
-        ws.binaryType = "arraybuffer";
-
-        ws.onmessage = (event) => {
-            let dataStr;
-            if (event.data instanceof ArrayBuffer) {
-                const decoder = new TextDecoder("utf-8");
-                dataStr = decoder.decode(event.data);
-            } else if (typeof event.data === "string") {
-                dataStr = event.data;
-            } else {
-                return;
-            }
-
-            if (dataStr.startsWith("data:image/")) {
-                const img = document.getElementById('receivedImage');
-                img.src = dataStr;
-                img.style.display = 'block';
-                console.log("画像を受信しました");
-            }
-        };
-    </script>
-
+  <script src="script.js"></script>
 </body>
-
 </html>
