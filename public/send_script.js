@@ -1,6 +1,7 @@
 const ws = new WebSocket(`wss://${location.host}`);
 
 let isCameraReady = false;
+let videoStream = null;
 
 ws.onopen = () => {
   console.log("WebSocket connected on iPhone side");
@@ -17,35 +18,39 @@ ws.onclose = (event) => {
 ws.onmessage = (event) => {
   console.log("iPhone received message:", event.data);
   if (event.data === "takePhoto") {
-    console.log("撮影指令を受信しました。撮影開始します。");
-    send();
+    console.log("撮影指令を受信しました。カメラ準備確認後に撮影します。");
+    waitForCameraAndSend();
   }
 };
 
 navigator.mediaDevices.getUserMedia({ video: true })
   .then((stream) => {
+    videoStream = stream;
     const video = document.getElementById("camera");
     video.srcObject = stream;
     console.log("カメラ映像取得成功");
-    isCameraReady = true;
+    video.onloadedmetadata = () => {
+      isCameraReady = true;
+      console.log("カメラ映像メタデータ取得、準備完了");
+    };
   })
   .catch((err) => {
     console.error("カメラ映像取得失敗:", err);
     alert("カメラの使用を許可してください: " + err.message);
   });
 
+function waitForCameraAndSend() {
+  const checkInterval = setInterval(() => {
+    const video = document.getElementById("camera");
+    if (isCameraReady && video.videoWidth > 0) {
+      clearInterval(checkInterval);
+      send();
+    }
+  }, 200);
+}
+
 function send() {
-  if (!isCameraReady) {
-    console.warn("カメラ準備ができていません。");
-    return;
-  }
-
   const video = document.getElementById("camera");
-  if (video.videoWidth === 0 || video.videoHeight === 0) {
-    console.warn("カメラ映像がまだ準備できていません。少し待ってから再度撮影してください。");
-    return;
-  }
-
   const canvas = document.getElementById("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
