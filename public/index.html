@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Received Images</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: sans-serif;
+        }
+        
+        img {
+            max-width: 80%;
+            margin: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Received Images</h1>
+    <div id="images"></div>
+
+    <script>
+        const ws = new WebSocket(`ws://${location.host}`);
+        ws.onmessage = (event) => {
+            const img = document.createElement('img');
+            img.src = event.data;
+            document.getElementById('images').prepend(img);
+        };
+    </script>
+</body>
+
+</html>
