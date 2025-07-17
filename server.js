@@ -6,24 +6,21 @@ const wss = new WebSocket.Server({ server: http });
 
 app.use(express.static('public'));
 
+// WebSocket接続・転送ロジック
 wss.on('connection', (ws) => {
+  console.log('New client connected. Total:', wss.clients.size);
+
+  ws.on('close', () => {
+    console.log('Client disconnected. Total:', wss.clients.size);
+  });
+
   ws.on('message', (data) => {
-    // 文字列のみ中継、画像データ（data:image）含む文字列も除外
-    if (typeof data === 'string' && !data.startsWith('data:image/')) {
-      wss.clients.forEach(client => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(data);
-        }
-      });
-    }
-    // 画像データは全員に送信（もしくはPCだけに送る）
-    else if (typeof data === 'string' && data.startsWith('data:image/')) {
-      wss.clients.forEach(client => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(data);
-        }
-      });
-    }
+    console.log('Received message:', typeof data === 'string' ? data : '[Binary Data]');
+    wss.clients.forEach(client => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    });
   });
 });
 
