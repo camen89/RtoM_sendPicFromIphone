@@ -4,18 +4,40 @@ ws.onopen = () => {
   console.log("WebSocket connected on iPhone side");
 };
 
+ws.onerror = (err) => {
+  console.error("WebSocket error:", err);
+};
+
+ws.onclose = (event) => {
+  console.log("WebSocket closed:", event);
+};
+
 ws.onmessage = (event) => {
+  console.log("iPhone received message:", event.data);
   if (event.data === "takePhoto") {
-    send(); // PCからの撮影指示で撮影＆送信を実行
+    console.log("撮影指令を受信しました。撮影開始します。");
+    send();
   }
 };
 
-navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-  document.getElementById("camera").srcObject = stream;
-});
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then((stream) => {
+    document.getElementById("camera").srcObject = stream;
+    console.log("カメラ映像取得成功");
+  })
+  .catch((err) => {
+    console.error("カメラ映像取得失敗:", err);
+    alert("カメラの使用を許可してください: " + err.message);
+  });
 
 function send() {
   const video = document.getElementById("camera");
+  console.log("videoサイズ:", video.videoWidth, video.videoHeight);
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    console.warn("カメラ映像がまだ準備できていません。少し待ってから再度撮影してください。");
+    return;
+  }
+
   const canvas = document.getElementById("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -28,6 +50,6 @@ function send() {
     ws.send(dataUrl);
     console.log("画像を送信しました");
   } else {
-    alert("WebSocket接続が確立されていません");
+    console.error("WebSocketが開いていません。送信できません。");
   }
 }
