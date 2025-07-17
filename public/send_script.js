@@ -21,7 +21,7 @@ ws.onmessage = (event) => {
       if (msg.type === "takePhoto") {
         console.log("撮影指令を受信しました。カメラ準備確認後に撮影します。");
         if (isCameraReady) {
-          send();
+          setTimeout(send, 1000);  // ← 0.3秒待ってから撮影
         } else {
           console.warn("カメラ未準備のため撮影できません。");
         }
