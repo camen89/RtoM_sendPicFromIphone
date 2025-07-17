@@ -21,7 +21,7 @@ ws.onmessage = (event) => {
       if (msg.type === "takePhoto") {
         console.log("撮影指令を受信しました。カメラ準備確認後に撮影します。");
         if (isCameraReady) {
-          setTimeout(send, 1000);  // ← 0.3秒待ってから撮影
+          captureAfterFrame();
         } else {
           console.warn("カメラ未準備のため撮影できません。");
         }
@@ -47,6 +47,12 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.error("カメラ映像取得失敗:", err);
     alert("カメラの使用を許可してください: " + err.message);
   });
+
+function captureAfterFrame() {
+  requestAnimationFrame(() => {
+    setTimeout(send, 100); // 100ms待機してから撮影
+  });
+}
 
 function send() {
   const video = document.getElementById("camera");
