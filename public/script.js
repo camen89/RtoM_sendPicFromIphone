@@ -86,3 +86,51 @@ function errorDiffusion1CH(u8array, width, height) {
     }
     return output;
 }
+
+
+function printCanvas() {
+    const originalCanvas = document.getElementById('resultCanvas');
+    const dateText = document.getElementById('date').textContent;
+    const placeText = document.getElementById('place').textContent;
+
+    // 印刷用Canvas作成
+    const printCanvas = document.createElement('canvas');
+    const ctx = printCanvas.getContext('2d');
+
+    // フォントサイズなど設定
+    // const headerFontSize = 16;
+    // const footerFontSize = 14;
+    const headerFontSize = 26; // ← 上部タイトル・メッセージのフォントサイズ
+    const footerFontSize = 24; // ← 下部 日付・場所のフォントサイズ
+    const margin = 20;
+
+    ctx.font = `${headerFontSize}px sans-serif`;
+    const headerHeight = headerFontSize * 2 + margin;
+    const footerHeight = footerFontSize * 2 + margin;
+
+    printCanvas.width = originalCanvas.width;
+    printCanvas.height = headerHeight + originalCanvas.height + footerHeight;
+
+    // 背景を白に
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+
+    // 上部テキスト
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.font = `${headerFontSize}px sans-serif`;
+    ctx.fillText('Record to Memory Box', printCanvas.width / 2, headerFontSize);
+    ctx.fillText('記録を記憶に', printCanvas.width / 2, headerFontSize * 2);
+
+    // 撮影画像 (中央)
+    ctx.drawImage(originalCanvas, 0, headerHeight);
+
+    // 下部テキスト
+    ctx.font = `${footerFontSize}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(dateText, 10, headerHeight + originalCanvas.height + footerFontSize);
+    ctx.fillText(placeText, 10, headerHeight + originalCanvas.height + footerFontSize * 2);
+
+    // 印刷関数呼び出し（m02s_print.js）
+    printFromCanvas(printCanvas);
+}
