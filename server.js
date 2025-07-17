@@ -9,17 +9,16 @@ app.use(express.static('public'));
 wss.on('connection', (ws) => {
   console.log('New client connected');
 
-  ws.on('message', (data) => {
-    if (typeof data === 'string') {
-      console.log('Received text message:', data);
-    } else if (data instanceof Buffer) {
-      console.log('Received binary message (not logged)');
-    }
+  ws.on('message', (data, isBinary) => {
+    console.log('Received message:', isBinary ? 'Binary' : 'Text');
 
-    // 他のすべてのクライアントに転送
     wss.clients.forEach(client => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
+        if (isBinary) {
+          client.send(data, { binary: true });
+        } else {
+          client.send(data.toString());
+        }
       }
     });
   });
