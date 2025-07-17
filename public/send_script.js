@@ -40,11 +40,18 @@ navigator.mediaDevices.getUserMedia({ video: true })
   });
 
 function waitForCameraAndSend() {
-  const checkInterval = setInterval(() => {
+  const maxWait = 5000; // 5秒待ってもカメラ準備できない場合は諦める
+  const start = Date.now();
+
+  const interval = setInterval(() => {
     const video = document.getElementById("camera");
     if (isCameraReady && video.videoWidth > 0) {
-      clearInterval(checkInterval);
+      clearInterval(interval);
+      console.log("カメラ準備完了、送信します");
       send();
+    } else if (Date.now() - start > maxWait) {
+      clearInterval(interval);
+      console.warn("カメラ準備が間に合いませんでした。撮影をスキップします");
     }
   }, 200);
 }
