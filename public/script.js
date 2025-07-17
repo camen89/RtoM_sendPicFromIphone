@@ -5,17 +5,24 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (event) => {
-  if (typeof event.data === "string" && event.data.startsWith("data:image/")) {
-    const img = document.getElementById("receivedImage");
-    img.src = event.data;
-    img.style.display = "block";
-    console.log("画像を受信しました");
+  if (typeof event.data === "string") {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "imageData" && msg.data) {
+        const img = document.getElementById("receivedImage");
+        img.src = msg.data;
+        img.style.display = "block";
+        console.log("画像を受信しました");
+      }
+    } catch (e) {
+      console.log("PC received unknown or invalid message, ignored.");
+    }
   }
 };
 
 document.getElementById("btnRemoteTake").addEventListener("click", () => {
   if (ws.readyState === WebSocket.OPEN) {
-    ws.send("takePhoto"); // iPhoneに撮影命令を送信
+    ws.send(JSON.stringify({ type: "takePhoto" })); // iPhoneに撮影命令を送信
     console.log("撮影命令を送信しました");
   } else {
     alert("WebSocket接続が確立されていません");
@@ -91,11 +98,7 @@ function takePhoto() {
     .padStart(2, "0")}`;
 }
 
-// --- toGrayscale と errorDiffusion1CH 関数はここに実装してください ---
-// 省略（以前のコードを使ってください）
-
 function printCanvas() {
   const originalCanvas = document.getElementById("resultCanvas");
-  // m02s_print.js の printFromCanvas 関数呼び出し想定
   printFromCanvas(originalCanvas);
 }
