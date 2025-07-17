@@ -1,5 +1,7 @@
 const ws = new WebSocket(`wss://${location.host}`);
 
+let isCameraReady = false;
+
 ws.onopen = () => {
   console.log("WebSocket connected on iPhone side");
 };
@@ -22,8 +24,10 @@ ws.onmessage = (event) => {
 
 navigator.mediaDevices.getUserMedia({ video: true })
   .then((stream) => {
-    document.getElementById("camera").srcObject = stream;
+    const video = document.getElementById("camera");
+    video.srcObject = stream;
     console.log("カメラ映像取得成功");
+    isCameraReady = true;
   })
   .catch((err) => {
     console.error("カメラ映像取得失敗:", err);
@@ -31,8 +35,12 @@ navigator.mediaDevices.getUserMedia({ video: true })
   });
 
 function send() {
+  if (!isCameraReady) {
+    console.warn("カメラ準備ができていません。");
+    return;
+  }
+
   const video = document.getElementById("camera");
-  console.log("videoサイズ:", video.videoWidth, video.videoHeight);
   if (video.videoWidth === 0 || video.videoHeight === 0) {
     console.warn("カメラ映像がまだ準備できていません。少し待ってから再度撮影してください。");
     return;
