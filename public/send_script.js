@@ -1,5 +1,7 @@
 const ws = new WebSocket(`wss://${location.host}`);
 
+let isCameraReady = false;
+
 ws.onopen = () => {
   console.log("WebSocket connected on iPhone side");
 };
@@ -18,7 +20,11 @@ ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === "takePhoto") {
         console.log("撮影指令を受信しました。カメラ準備確認後に撮影します。");
-        send();
+        if (isCameraReady) {
+          send();
+        } else {
+          console.warn("カメラ未準備のため撮影できません。");
+        }
       }
     } catch (e) {
       console.log("iPhone received unknown or invalid message, ignored.");
@@ -34,6 +40,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
 
     video.onloadedmetadata = () => {
       console.log("カメラ映像メタデータ取得、準備完了");
+      isCameraReady = true;
     };
   })
   .catch((err) => {
@@ -44,7 +51,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
 function send() {
   const video = document.getElementById("camera");
   if (video.videoWidth === 0 || video.videoHeight === 0) {
-    console.warn("カメラ映像がまだ準備できていません。少し待ってから再度撮影してください。");
+    console.warn("カメラ映像がまだ準備できていません。");
     return;
   }
 
